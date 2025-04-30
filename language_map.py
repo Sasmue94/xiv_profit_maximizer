@@ -1,3 +1,5 @@
+# this module conatins a language map for different page labels
+
 language_map: dict[str:dict[str:str]] = {
     "dc" : {
         "en":"Datacenter",

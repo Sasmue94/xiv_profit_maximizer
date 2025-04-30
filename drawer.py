@@ -1,3 +1,5 @@
+# this module is made for drawing any needed visualisations of data on screen
+
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -6,7 +8,13 @@ import streamlit as st
 from pandas import DataFrame
 from streamlit import plotly_chart
 
+# draw line graph of sales history on screen
 def draw_sale_history(sale_history: DataFrame) -> None:
+    """
+    draws line chart of requested sale history of item on current world \n
+    :param sale_history: DataFrame containing the last saved sales history of an items
+    :return: None
+    """
     if not sale_history.empty:
         max_range_y = np.ceil(max(sale_history["qty"]) * 1.15)
         fig = px.line(sale_history, x="date", y="qty", range_y=[0, max_range_y])
@@ -14,7 +22,14 @@ def draw_sale_history(sale_history: DataFrame) -> None:
     else:
         st.subheader("No current sales")
 
+# draw bar chart of the most fitting, cheapes listings of an item across all worlds of a given Datacenter
 def draw_resell_listings(listings: DataFrame, world_label: str, total_label: str, unit_label: str, title_label: str) -> None:
+    """
+    draws bar chart of requested listings across all worlds on the Datacenter \n
+    :param listings: DataFrame containing current item listings on market boards
+    :param labels: strings containing information to display in the bar chart
+    :return: None
+    """
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     fig.add_trace(
