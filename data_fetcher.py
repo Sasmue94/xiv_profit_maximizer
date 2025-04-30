@@ -17,6 +17,7 @@ def map_items(filename: str = "itemNames.json", lang: str = "de") -> pd.DataFram
     items = items.iloc[marketable_items]
     items = items[items[lang] != ""]
     items.index.name = "item_id"
+    items = items.reset_index(drop=False)
     return items
 
 def convert_response(response: Response) -> dict:
@@ -33,7 +34,7 @@ def get_item_info(item_id: int) -> dict[str:any]:
 
 @st.cache_data
 def get_item_id(items: pd.DataFrame, lang: str, selected_item: str) -> int:
-    target_item_id = items[items[lang] == selected_item].index[0]
+    target_item_id = items[items[lang] == selected_item]["item_id"].iat[0]
     return target_item_id
 
 @st.cache_data
@@ -81,7 +82,7 @@ def get_listings(item_ids: list[int], datacenter: str) -> dict[str:any]:
     url = f"https://universalis.app/api/v2/{datacenter}/{ids}"
     return convert_response(requests.get(url))
 
-def get_lowest_listings(listings: list[dict[str:any]], item_count: int) -> dict:
+def get_lowest_listings(listings: list[dict[str:any]], item_count: int) -> DataFrame:
     lowest_listings: dict = {}
     if listings:
         for entry in listings:
@@ -98,7 +99,7 @@ def get_lowest_listings(listings: list[dict[str:any]], item_count: int) -> dict:
     df = df.reset_index(drop=False)                
     return df
 
-def get_cheapest_materials(listings: list[dict[str:any]], item_count: int) -> dict:
+def get_cheapest_materials(listings: list[dict[str:any]], item_count: int) -> DataFrame:
     lowest_listings: dict = {}
     if listings:
         for entry in listings:
