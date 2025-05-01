@@ -26,10 +26,10 @@ language_map: dict[str:dict[str:str]] = {
         "ja" : "フィルター 「アイテム」"
     },
     "count" : {
-        "en" : "item count",
-        "de" : "Anzahl herzustellender Items",
-        "fr" : "Nombre d'items à fabriquer",
-        "ja" : "クラフトアイテムの数"
+        "en" : "Number of Crafts",
+        "de" : "Anzahl Herstellungen",
+        "fr" : "Nombre d'artisans",
+        "ja" : "クラフト数"
     },
     "search" : {
         "en" : "search",
@@ -66,6 +66,12 @@ language_map: dict[str:dict[str:str]] = {
         "de" : "Günstigste Listings je Welt",
         "fr" : "Nombre d'inscriptions le plus bas par monde",
         "ja" : "世界最下位"
+    },
+    "amount" : {
+        "en" : "Number",
+        "de" : "Anzahl",
+        "fr" : "Nombre",
+        "ja" : "数量"
     }
 
 }

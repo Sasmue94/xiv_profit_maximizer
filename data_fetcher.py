@@ -155,6 +155,20 @@ def get_listings(item_ids: list[int], datacenter: str) -> dict[str:any]:
     url = f"https://universalis.app/api/v2/{datacenter}/{ids}"
     return convert_response(requests.get(url))
 
+def get_first_listing(item_id: int, world: str, hq: bool, fallback_price: int) -> int:
+    """
+    requests universalis with specified world and item_id \n
+    :param item_id: a ff xiv item IDs
+    :return Listing data: returns either the first price listed or the fallback price
+    """
+    url = f"https://universalis.app/api/v2/{world}/{item_id}?entries=1&hq={hq}"
+    val = convert_response(requests.get(url))["listings"]
+    if val:
+        price = val[0]["pricePerUnit"]
+    else:
+        price = fallback_price
+    return price
+
 # check listings for specified amounts of needed items
 def get_lowest_listings(listings: list[dict[str:any]], item_count: int) -> DataFrame:
     """
@@ -179,49 +193,8 @@ def get_lowest_listings(listings: list[dict[str:any]], item_count: int) -> DataF
     df = df.reset_index(drop=False)                
     return df
 
-# check listings for specified amounts of needed items
-# also diferentiates HQ and NQ Items
-def get_cheapest_materials(listings: list[dict[str:any]], item_count: int) -> DataFrame:
-    """
-    searches provided listings for the cheapest listing >= needed item count \n
-    takes hq and nq into account \n
-    :param listings: a list of ff xiv market board listings per item
-    :param item_count: Number of needed items
-    :return cheapest listings: returns a Dataframe containing the best suiting market board listings
-    """
-    lowest_listings: dict = {}
-    if listings:
-        for entry in listings:
-            hq: bool = entry["hq"]
-            qty: int = entry["quantity"]
-            total: int = entry["total"]
-            ppu: int = entry["pricePerUnit"]
-            world: str = entry["worldName"]
-            if world not in lowest_listings:
-                if hq:
-                    lowest_listings[world] = {
-                        "hq" : {"quantity": qty, "total": total, "price_per_unit": ppu} 
-                    }
-                else:
-                    lowest_listings[world] = {
-                        "nq" : {"quantity": qty, "total": total, "price_per_unit": ppu} 
-                    }
-            else:
-                if hq and "hq" not in lowest_listings[world]:
-                    lowest_listings[world]["hq"] = {"quantity": qty, "total": total} 
-
-                elif not hq and "nq" not in lowest_listings[world]:
-                    lowest_listings[world]["nq"] = {"quantity": qty, "total": total} 
-
-                elif hq and qty >= item_count and total < lowest_listings[world]["hq"]["total"]:
-                    lowest_listings[world]["hq"] = {"quantity": qty, "total": total}
-
-                elif not hq and qty >= item_count and total < lowest_listings[world]["nq"]["total"]:
-                    lowest_listings[world]["nq"] = {"quantity": qty, "total": total}
-    return pd.DataFrame(lowest_listings)
-
 # get recipe ingredients
-def get_ingredients(recipe_data: dict) -> dict:
+def get_ingredients(recipe_data: dict, number_of_crafts: int) -> dict:
     """
     Check recipe data for item ids and the amount needed \n
     :param recipe_data: a dict containing ff xiv recipe information
@@ -230,49 +203,39 @@ def get_ingredients(recipe_data: dict) -> dict:
     ingredients = {}
     for i in range(0, 8):
         if recipe_data[f"AmountIngredient{i}"] > 0:
-            ingredients[recipe_data[f"ItemIngredient{i}TargetID"]] = recipe_data[f"AmountIngredient{i}"]
+            ingredients[recipe_data[f"ItemIngredient{i}TargetID"]] = recipe_data[f"AmountIngredient{i}"] * number_of_crafts
     return ingredients
 
-if __name__ == "__main__":
+def get_lowest_sum(entries, needed_items):
+    # Sort entries by pricePerUnit (it is already sorted in the input)
+    
+    # To store the best combination of entries
+    best_combination = []
+    lowest_total = float('inf')
+    best_quantity_sum = 0
+    
+    # Try all possible combinations of entries, starting from the first entry
+    for i in range(len(entries)):
+        current_combination = []
+        current_total = 0
+        current_quantity_sum = 0
+        
+        for j in range(i, len(entries)):
+            current_combination.append(entries[j])
+            current_quantity_sum += entries[j]["quantity"]
+            current_total += entries[j]["total"]
+            
+            # Check if the quantity sum is enough to fulfill the needed items
+            if current_quantity_sum >= needed_items:
+                # If it meets the quantity requirement, check if this combination has a smaller total
+                if current_total < lowest_total:
+                    best_combination = current_combination.copy()
+                    lowest_total = current_total
+                    best_quantity_sum = current_quantity_sum
+                break
+    
+    # If no combination meets the requirement, return the entire list
+    if best_quantity_sum < needed_items:
+        return entries
 
-    dcs = {
-        "Aether":["Adamantoise","Cactuar","Faerie","Gilgamesh","Jenova","Midgardsormr","Sargatanas","Siren"],
-        "Chaos":["Cerberus","Louisoix","Moogle","Omega","Phantom","Ragnarok","Sagittarius","Spriggan"],
-        "Crystal":["Balmung","Brynhildr","Coeurl","Diabolos","Goblin","Malboro","Mateus","Zalera"],
-        "Dynamis":["Halicarnassus","Maduin","Marilith","Seraph"],
-        "Elemental":["Aegis","Atomos","Carbuncle","Garuda","Gungnir","Kujata","Tonberry","Typhon"],
-        "Gaia":["Alexander","Bahamut","Durandal","Fenrir","Ifrit","Ridill","Tiamat","Ultima"],
-        "Light":["Alpha","Lich","Odin","Phoenix","Raiden","Shiva","Twintania","Zodiark"],
-        "Mana":["Anima","Asura","Chocobo","Hades","Ixion","Masamune","Pandaemonium","Titan"],
-        "Materia":["Bismarck","Ravana","Sephirot","Sophia","Zurvan"],
-        "Meteor":["Belias","Mandragora","Ramuh","Shinryu","Unicorn","Valefor","Yojimbo","Zeromus"],
-        "Primal":["Behemoth","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Ultros"]
-    }
-
-    lang: str = "de"
-    item_id: str = "30757"
-    items: DataFrame = map_items()
-    item_response: Response = get_item_info(item_id=item_id)
-
-    print(items.loc[item_id][lang])
-
-    item_data: dict = convert_response(response=item_response)
-    if item_data:
-        name: str = item_data[f"Name_{lang}"]
-        print(name)
-        if isCraftable(item_data=item_data):
-            recipes: list = item_data["Recipes"] 
-            for r in recipes:
-                job_response: Response = get_job(r["ClassJobID"])
-                job_data: dict = convert_response(response=job_response)
-                if job_data:
-                    job_name: str = job_data[f"Name_{lang}"]
-                    print(job_name)
-                recipe_response: Response = get_recipes(recipe_id=r["ID"])
-                recipe_data: dict = convert_response(response=recipe_response)
-                if recipe_data:
-                    ingredients: dict = get_ingredients(recipe_data=recipe_data)
-                    for id in ingredients:
-                        print(ingredients[id], items[f"{id}"][lang])
-        else:
-            print("not craftable")
+    return best_combination

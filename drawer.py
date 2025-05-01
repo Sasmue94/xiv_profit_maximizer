@@ -9,27 +9,45 @@ from pandas import DataFrame
 from streamlit import plotly_chart
 
 # draw line graph of sales history on screen
-def draw_sale_history(sale_history: DataFrame) -> None:
+def draw_sale_history(sale_history_agg: DataFrame, sale_history: DataFrame) -> None:
     """
     draws line chart of requested sale history of item on current world \n
     :param sale_history: DataFrame containing the last saved sales history of an items
     :return: None
     """
-    if not sale_history.empty:
-        max_range_y = np.ceil(max(sale_history["qty"]) * 1.15)
-        fig = px.line(sale_history, x="date", y="qty", range_y=[0, max_range_y])
+    if not sale_history_agg.empty:
+        
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+        fig.add_trace(
+            go.Scatter(x=sale_history_agg["date"], y=sale_history_agg["qty"], name="Total Amount Sold"),
+            secondary_y=False
+        )
+
+        fig.add_trace(
+            go.Scatter(x=sale_history["date"], y=sale_history["ppu"], name="Price Per Unit", mode="markers"),
+            secondary_y=True
+        )
+
+        fig.update_layout(legend_title_text="Historic Sales", xaxis_title="Date")
+
+        fig.update_xaxes(title_text="Date")
+        fig.update_yaxes(title_text="Total Amount sold", secondary_y=False)
+        fig.update_yaxes(title_text="Price per unit", secondary_y=True)
+        
         plotly_chart(fig)
     else:
         st.subheader("No current sales")
 
 # draw bar chart of the most fitting, cheapes listings of an item across all worlds of a given Datacenter
-def draw_resell_listings(listings: DataFrame, world_label: str, total_label: str, unit_label: str, title_label: str) -> None:
+def draw_resell_listings(listings: DataFrame, world_label: str, total_label: str, unit_label: str, title_label: str, amount_label: str) -> None:
     """
     draws bar chart of requested listings across all worlds on the Datacenter \n
     :param listings: DataFrame containing current item listings on market boards
     :param labels: strings containing information to display in the bar chart
     :return: None
     """
+
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     fig.add_trace(
@@ -43,9 +61,21 @@ def draw_resell_listings(listings: DataFrame, world_label: str, total_label: str
         secondary_y=True
     )
 
-    fig.update_layout(title_text=title_label, legend_title_text="Costs", xaxis_title=world_label)
+    fig.add_trace(
+        go.Bar(x=listings["world"], y=listings["quantity"], width=0, name=amount_label)
+    )
 
-    fig.update_xaxes(title_text=world_label,)
+    fig.update_layout(title_text=title_label, legend_title_text="Costs", xaxis_title=world_label, hovermode="x unified")
+
+    fig.update_xaxes(title_text=world_label)
     fig.update_yaxes(title_text=total_label, secondary_y=False)
     fig.update_yaxes(title_text=unit_label, secondary_y=True)
+    plotly_chart(fig)
+
+def draw_profit_bars(calculations: DataFrame) -> None:
+    fig = px.bar(calculations)
+    plotly_chart(fig)
+
+def draw_cost_spread_pie(shoppinglist: DataFrame) -> None:
+    fig = px.pie(data_frame=shoppinglist, values="Total", names = "Item")
     plotly_chart(fig)
