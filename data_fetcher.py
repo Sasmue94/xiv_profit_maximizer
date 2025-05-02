@@ -206,8 +206,14 @@ def get_ingredients(recipe_data: dict, number_of_crafts: int) -> dict:
             ingredients[recipe_data[f"ItemIngredient{i}TargetID"]] = recipe_data[f"AmountIngredient{i}"] * number_of_crafts
     return ingredients
 
-def get_lowest_sum(entries, needed_items):
-    # Sort entries by pricePerUnit (it is already sorted in the input)
+def get_lowest_sum(entries: DataFrame, needed_items: int) -> list[dict]:
+    """
+    Takes all Listings of an item and a target itemcount as input. Goes through all \n
+    listings and looks for the cheapest combination reaching the desired itemcount. \n
+    :param entries: Pandas Dataframe containing all entries regarding a specific item.
+    :param needed_items: Int representing the number of desired items.
+    :return best_combination: List containing the cheapest combination of entry dicts. 
+    """
     
     # To store the best combination of entries
     best_combination = []

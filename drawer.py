@@ -3,7 +3,6 @@
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
 import streamlit as st
 from pandas import DataFrame
 from streamlit import plotly_chart
@@ -72,10 +71,45 @@ def draw_resell_listings(listings: DataFrame, world_label: str, total_label: str
     fig.update_yaxes(title_text=unit_label, secondary_y=True)
     plotly_chart(fig)
 
+# draw bar chart of expected crafting cost, turnover and estimated profit
 def draw_profit_bars(calculations: DataFrame) -> None:
+    """
+    draws bar chart of expected crafting cost, turnover and estimated profit \n
+    :param calculations: DataFrame containing current item crafting cost, expected turnover and estimated profit
+    :return: None
+    """
     fig = px.bar(calculations)
     plotly_chart(fig)
 
+# draw pie chart showing which item has what share of the cost
 def draw_cost_spread_pie(shoppinglist: DataFrame) -> None:
+    """
+    draws pie chart showing which item has what share of the cost \n
+    :param calculations: DataFrame containing current shoppinglist
+    :return: None
+    """
     fig = px.pie(data_frame=shoppinglist, values="Total", names = "Item")
     plotly_chart(fig)
+
+# draw bar chart of cheapest listings meeting the required item number per world
+def draw_lowest_listings(item: str, items: DataFrame, lang: str, language_map: dict[str:dict], lowest_listings: DataFrame) -> None:
+    """
+    draws bar chart of cheapest listings meeting the required item count in quantity \n
+    draws 2 bars with 2 y-axes, total price and price per unit \n
+    :param item: name of an item as str
+    :param items: Dataframe containing item information
+    :param lang: string specifieng output language
+    :language map: dict containing language mapping
+    :param lowest_listings: Dataframe containing the lowest listings of an item
+    :return: None
+    """
+    gapL, m, gapR = st.columns([1,10,1], gap="large")
+    with m:
+        st.subheader(items[items["item_id"] == int(item)][lang].iat[0])
+        # show best possible purchases on each world
+        draw_resell_listings(listings=lowest_listings, 
+                        world_label=language_map["world"][lang], 
+                        total_label=language_map["total"][lang], 
+                        unit_label=language_map["unit"][lang],
+                        title_label=language_map["listing_bar"][lang],
+                        amount_label=language_map["amount"][lang])

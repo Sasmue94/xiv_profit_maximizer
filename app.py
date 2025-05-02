@@ -11,22 +11,10 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ct
 # configure layout
 st.set_page_config(page_title="XIV Profit Maximizer", page_icon="💲", layout="wide", initial_sidebar_state="collapsed", menu_items=None)
 
-shoppinglist = {}
+shoppinglist: dict = {}
 
-def draw_lowest_listings(i, items, lang, recipe_listings, ingredients, language_map) -> None:
-    gapL, m, gapR = st.columns([1,10,1], gap="large")
-    with m:
-        st.subheader(items[items["item_id"] == int(i)][lang].iat[0])
-        lowest_listings = df.get_lowest_listings(listings=recipe_listings["items"][i]["listings"], item_count=ingredients[int(i)])
-        # show best possible purchases on each world
-        dr.draw_resell_listings(listings=lowest_listings, 
-                        world_label=language_map["world"][lang], 
-                        total_label=language_map["total"][lang], 
-                        unit_label=language_map["unit"][lang],
-                        title_label=language_map["listing_bar"][lang],
-                        amount_label=language_map["amount"][lang])
-
-def shop_data(listings, items_needed, item_name):
+# group desired listings by world to create a shoppinglist
+def shop_data(listings: pd.DataFrame, items_needed: int, item_name: str) -> None:
     listings_to_buy = df.get_lowest_sum(entries=listings, needed_items=items_needed)
     for entry in listings_to_buy:
         entry["name"] = item_name
@@ -34,7 +22,8 @@ def shop_data(listings, items_needed, item_name):
             world = entry["worldName"]
             shoppinglist[world].append(entry)
 
-def harmonise_shoopinglist(shoppinglist: dict):
+# convert shoppinglist into a pandas Dataframe
+def convert_shoppinglist(shoppinglist: dict) -> pd.DataFrame:
     harmonised = {
         "World":[],
         "Retainer":[],
@@ -53,9 +42,8 @@ def harmonise_shoopinglist(shoppinglist: dict):
             harmonised["Total"].append(entry["total"])
     return pd.DataFrame(harmonised)
 
-
 # All possible languages given itemNames.json
-languages = ["de", "en", "fr", "ja"]
+languages: list[str] = ["de", "en", "fr", "ja"]
 
 # relevant Datacenters as of 04/25
 dcs: dict[str:list[str]] = {
@@ -140,7 +128,8 @@ if search:
                 threads = []
                 for i in recipe_listings["items"]: # there is a maximum of 7 ingredients per craft
                     # show best possible purchases on each world
-                    thread = threading.Thread(target=draw_lowest_listings, args=[i, items, lang, recipe_listings, ingredients, language_map]) # <= 7 Threads
+                    lowest_listings = df.get_lowest_listings(listings=recipe_listings["items"][i]["listings"], item_count=ingredients[int(i)])
+                    thread = threading.Thread(target=dr.draw_lowest_listings, args=[i, items, lang, language_map, lowest_listings]) # <= 7 Threads
                     add_script_run_ctx(thread, get_script_run_ctx())
                     threads.append(thread)
                     thread.start()
@@ -152,7 +141,7 @@ if search:
                     item_name = items[items["item_id"] == int(i)][lang].iat[0]
                     shop_data(listings=recipe_listings["items"][i]["listings"], items_needed=ingredients[int(i)], item_name=item_name)
 
-            shoppinglist = harmonise_shoopinglist(shoppinglist)
+            shoppinglist = convert_shoppinglist(shoppinglist)
             st.subheader("Shoppinglist:")
             st.dataframe(shoppinglist, hide_index=True)
             total_cost = sum(shoppinglist["Total"])
