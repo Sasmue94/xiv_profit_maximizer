@@ -171,7 +171,8 @@ if search:
             lowest_listings = df.get_lowest_listings(listings=listings, item_count=crafts)
             # show cheapest listings across different worlds for possible buying / reselling
             shop_data(listings=listings, items_needed=crafts, item_name=selected_item, ingredient_data=item_data)
-            st.dataframe(data=convert_shoppinglist(shoppinglist), hide_index=True)
+            shoppinglist = convert_shoppinglist(shoppinglist=shoppinglist)
+            st.dataframe(data=shoppinglist, hide_index=True)
             dr.draw_resell_listings(listings=lowest_listings, 
                                     world_label=language_map["world"][lang], 
                                     total_label=language_map["total"][lang], 

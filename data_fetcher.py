@@ -7,7 +7,6 @@ import requests
 import datetime
 from pandas import DataFrame
 from requests import Response
-from itertools import combinations
 
 # creates a df containing all item names in en, de, fr, ja
 @st.cache_data
@@ -252,28 +251,3 @@ def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False)
 
     return best_combination
 
-def select_entries(entries: dict, needed_items: int, buy_hq: bool = False) -> pd.DataFrame:
-
-    entries = pd.DataFrame(entries)
-
-    # Optionally filter for HQ items
-    if buy_hq:
-        entries = entries[entries['hq']]
-    
-    entries = entries.reset_index(drop=True)  # Ensure clean indexing
-
-    best_total = float('inf')
-    best_combo = None
-
-    # Try combinations of all possible lengths
-    for r in range(1, len(entries) + 1):
-        for combo in combinations(entries.index, r):
-            subset = entries.loc[list(combo)]
-            total_quantity = subset['quantity'].sum()
-            total_price = subset['total'].sum()
-
-            if total_quantity >= needed_items and total_price < best_total:
-                best_total = total_price
-                best_combo = subset
-
-    return best_combo if best_combo is not None else pd.DataFrame(columns=entries.columns)
