@@ -7,6 +7,7 @@ import requests
 import datetime
 from pandas import DataFrame
 from requests import Response
+from itertools import combinations
 
 # creates a df containing all item names in en, de, fr, ja
 @st.cache_data
@@ -206,7 +207,7 @@ def get_ingredients(recipe_data: dict, number_of_crafts: int) -> dict:
             ingredients[recipe_data[f"ItemIngredient{i}TargetID"]] = recipe_data[f"AmountIngredient{i}"] * number_of_crafts
     return ingredients
 
-def get_lowest_sum(entries: DataFrame, needed_items: int, buy_hq: bool = False) -> list[dict]:
+def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False) -> list[dict]:
     """
     Takes all Listings of an item and a target itemcount as input. Goes through all \n
     listings and looks for the cheapest combination reaching the desired itemcount. \n
@@ -214,6 +215,11 @@ def get_lowest_sum(entries: DataFrame, needed_items: int, buy_hq: bool = False) 
     :param needed_items: Int representing the number of desired items.
     :return best_combination: List containing the cheapest combination of entry dicts. 
     """
+
+    if buy_hq:
+        entries = pd.DataFrame(entries)
+        entries = entries[entries["hq"] == buy_hq].copy()
+        entries = entries.to_dict(orient="records")
     
     # To store the best combination of entries
     best_combination = []
@@ -227,15 +233,9 @@ def get_lowest_sum(entries: DataFrame, needed_items: int, buy_hq: bool = False) 
         current_quantity_sum = 0
         
         for j in range(i, len(entries)):
-            if buy_hq:
-                if entries[j]["hq"]:
-                    current_combination.append(entries[j])
-                    current_quantity_sum += entries[j]["quantity"]
-                    current_total += entries[j]["total"]
-            else:
-                current_combination.append(entries[j])
-                current_quantity_sum += entries[j]["quantity"]
-                current_total += entries[j]["total"]
+            current_combination.append(entries[j])
+            current_quantity_sum += entries[j]["quantity"]
+            current_total += entries[j]["total"]
             
             # Check if quantity is enough
             if current_quantity_sum >= needed_items:
@@ -251,3 +251,29 @@ def get_lowest_sum(entries: DataFrame, needed_items: int, buy_hq: bool = False) 
         return entries
 
     return best_combination
+
+def select_entries(entries: dict, needed_items: int, buy_hq: bool = False) -> pd.DataFrame:
+
+    entries = pd.DataFrame(entries)
+
+    # Optionally filter for HQ items
+    if buy_hq:
+        entries = entries[entries['hq']]
+    
+    entries = entries.reset_index(drop=True)  # Ensure clean indexing
+
+    best_total = float('inf')
+    best_combo = None
+
+    # Try combinations of all possible lengths
+    for r in range(1, len(entries) + 1):
+        for combo in combinations(entries.index, r):
+            subset = entries.loc[list(combo)]
+            total_quantity = subset['quantity'].sum()
+            total_price = subset['total'].sum()
+
+            if total_quantity >= needed_items and total_price < best_total:
+                best_total = total_price
+                best_combo = subset
+
+    return best_combo if best_combo is not None else pd.DataFrame(columns=entries.columns)

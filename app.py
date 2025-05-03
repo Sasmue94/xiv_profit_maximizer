@@ -14,10 +14,15 @@ st.set_page_config(page_title="XIV Profit Maximizer", page_icon="💲", layout="
 shoppinglist: dict = {}
 
 # group desired listings by world to create a shoppinglist
-def shop_data(listings: pd.DataFrame, items_needed: int, item_name: str) -> None:
-    listings_to_buy = df.get_lowest_sum(entries=listings, needed_items=items_needed)
+def shop_data(listings: pd.DataFrame, items_needed: int, item_name: str, ingredient_data: dict, buy_hq: bool = False) -> None:
+    if not df.isCraftable(item_data=ingredient_data):
+        buy_hq = False
+    listings_to_buy = df.get_lowest_sum(entries=listings, needed_items=items_needed, buy_hq=buy_hq)
     for entry in listings_to_buy:
-        entry["name"] = item_name
+        if buy_hq:
+            entry["name"] = f"{item_name} (HQ)"
+        else:    
+            entry["name"] = item_name
         if entry:
             world = entry["worldName"]
             shoppinglist[world].append(entry)
@@ -83,7 +88,9 @@ with r:
     world = st.selectbox(label=language_map["world"][lang], options=dcs[dc])
     selected_item = st.selectbox(label=language_map["item_select"][lang], options=filtered_items[lang])
     fallback_price = st.number_input("Price if no listing is active", min_value=1, step=1)
-    hq = st.checkbox(label = "Craft HQ", )
+    buy, craft = st.columns(2)
+    buy_hq = buy.checkbox(label = "Buy HQ")
+    craft_hq = craft.checkbox(label = "Craft HQ")
 
 for server in dcs[dc]:
     shoppinglist[server] = []
@@ -104,7 +111,7 @@ if search:
     with m:
 
         # display sale history
-        lowest_price = df.get_first_listing(item_id=target_item_id, world=world, hq=hq, fallback_price=fallback_price)
+        lowest_price = df.get_first_listing(item_id=target_item_id, world=world, hq=craft_hq, fallback_price=fallback_price)
         st.subheader(f"{language_map['history'][lang]}: {selected_item}")
         st.subheader(f"Current Price on {world}: {lowest_price} Gil")
         dr.draw_sale_history(sale_history_agg=hist_agg, sale_history=hist)
@@ -137,9 +144,10 @@ if search:
                 for thread in threads:
                     thread.join()
 
-                for i in recipe_listings["items"]:
-                    item_name = items[items["item_id"] == int(i)][lang].iat[0]
-                    shop_data(listings=recipe_listings["items"][i]["listings"], items_needed=ingredients[int(i)], item_name=item_name)
+                for i_id in recipe_listings["items"]:
+                    item_name = items[items["item_id"] == int(i_id)][lang].iat[0]
+                    ingredient_data = df.get_item_info(int(i_id))
+                    shop_data(listings=recipe_listings["items"][i_id]["listings"], ingredient_data=ingredient_data, items_needed=ingredients[int(i_id)], item_name=item_name, buy_hq=buy_hq)
 
             shoppinglist = convert_shoppinglist(shoppinglist)
             st.subheader("Shoppinglist:")
@@ -162,7 +170,8 @@ if search:
             listings = df.get_listings(item_ids=[target_item_id], datacenter=dc)["listings"]
             lowest_listings = df.get_lowest_listings(listings=listings, item_count=crafts)
             # show cheapest listings across different worlds for possible buying / reselling
-            st.write(df.get_lowest_sum(entries=listings, needed_items=crafts))
+            shop_data(listings=listings, items_needed=crafts, item_name=selected_item, ingredient_data=item_data)
+            st.dataframe(data=convert_shoppinglist(shoppinglist), hide_index=True)
             dr.draw_resell_listings(listings=lowest_listings, 
                                     world_label=language_map["world"][lang], 
                                     total_label=language_map["total"][lang], 
