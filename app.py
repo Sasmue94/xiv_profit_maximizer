@@ -19,10 +19,7 @@ def shop_data(listings: pd.DataFrame, items_needed: int, item_name: str, ingredi
         buy_hq = False
     listings_to_buy = df.get_lowest_sum(entries=listings, needed_items=items_needed, buy_hq=buy_hq)
     for entry in listings_to_buy:
-        if buy_hq:
-            entry["name"] = f"{item_name} (HQ)"
-        else:    
-            entry["name"] = item_name
+        entry["name"] = f"{item_name} (HQ)" if buy_hq else item_name
         if entry:
             world = entry["worldName"]
             shoppinglist[world].append(entry)
@@ -127,13 +124,12 @@ if search:
             except:
                     st.subheader(f"{qual} -> no data")
 
-
-
-
         # item is craftable
         amount_result = 0
         if df.isCraftable(item_data=item_data):
             recipes = item_data["Recipes"]
+
+            # get relevant data regarding recipe
             for recipe in recipes:
                 recipe_id = recipe["ID"]
                 job = recipe["ClassJobID"]
