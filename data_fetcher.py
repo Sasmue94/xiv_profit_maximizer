@@ -206,7 +206,7 @@ def get_ingredients(recipe_data: dict, number_of_crafts: int) -> dict:
             ingredients[recipe_data[f"ItemIngredient{i}TargetID"]] = recipe_data[f"AmountIngredient{i}"] * number_of_crafts
     return ingredients
 
-def get_lowest_sum(entries: DataFrame, needed_items: int) -> list[dict]:
+def get_lowest_sum(entries: DataFrame, needed_items: int, buy_hq: bool = False) -> list[dict]:
     """
     Takes all Listings of an item and a target itemcount as input. Goes through all \n
     listings and looks for the cheapest combination reaching the desired itemcount. \n
@@ -227,20 +227,26 @@ def get_lowest_sum(entries: DataFrame, needed_items: int) -> list[dict]:
         current_quantity_sum = 0
         
         for j in range(i, len(entries)):
-            current_combination.append(entries[j])
-            current_quantity_sum += entries[j]["quantity"]
-            current_total += entries[j]["total"]
+            if buy_hq:
+                if entries[j]["hq"]:
+                    current_combination.append(entries[j])
+                    current_quantity_sum += entries[j]["quantity"]
+                    current_total += entries[j]["total"]
+            else:
+                current_combination.append(entries[j])
+                current_quantity_sum += entries[j]["quantity"]
+                current_total += entries[j]["total"]
             
-            # Check if the quantity sum is enough to fulfill the needed items
+            # Check if quantity is enough
             if current_quantity_sum >= needed_items:
-                # If it meets the quantity requirement, check if this combination has a smaller total
+                # check if combination has smaller total
                 if current_total < lowest_total:
                     best_combination = current_combination.copy()
                     lowest_total = current_total
                     best_quantity_sum = current_quantity_sum
                 break
     
-    # If no combination meets the requirement, return the entire list
+    # if there are not enough listings, return entire list
     if best_quantity_sum < needed_items:
         return entries
 

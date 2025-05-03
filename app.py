@@ -162,7 +162,7 @@ if search:
             listings = df.get_listings(item_ids=[target_item_id], datacenter=dc)["listings"]
             lowest_listings = df.get_lowest_listings(listings=listings, item_count=crafts)
             # show cheapest listings across different worlds for possible buying / reselling
-            st.write(df.get_lowest_sum(listings=listings, items_needed=crafts, item_name=selected_item))
+            st.write(df.get_lowest_sum(entries=listings, needed_items=crafts))
             dr.draw_resell_listings(listings=lowest_listings, 
                                     world_label=language_map["world"][lang], 
                                     total_label=language_map["total"][lang], 
