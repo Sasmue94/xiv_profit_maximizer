@@ -115,15 +115,14 @@ if search:
         st.header(f"{language_map['history'][lang]}: {selected_item}")
         st.subheader(f"Current Price on {world}: {lowest_price} Gil")
         dr.draw_sale_history(sale_history_agg=hist_agg, sale_history=hist)
+
+        # display average sale data
         item_data = df.get_item_info(item_id=target_item_id)
         avg_sale_data = df.get_average_sale_info(world=world, item_id=target_item_id)["results"][0]
         avg_sale_data = [pd.DataFrame(avg_sale_data["nq"]).transpose(), pd.DataFrame(avg_sale_data["hq"]).transpose()]
         for i, e in enumerate(avg_sale_data):
-            if i == 0:
-                qual = "NQ"
-            else: 
-                qual = "HQ"
-            try:
+            qual = "NQ" if i == 0 else "HQ" # maximum of i = 1 possible
+            try: # if the format doesn't match, the data is insufficient
                 st.subheader(f'{qual} -> Average Sale Price: {e["world"].at["averageSalePrice"]["price"]} Gil, Average Daily Sales: {e["world"].at["dailySaleVelocity"]["quantity"]:.2f} pcs')
             except:
                     st.subheader(f"{qual} -> no data")

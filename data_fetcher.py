@@ -168,6 +168,7 @@ def get_listings(item_ids: list[int], datacenter: str) -> dict[str:any]:
     url = f"https://universalis.app/api/v2/{datacenter}/{ids}"
     return convert_response(requests.get(url))
 
+# get first listing of item on selected world
 def get_first_listing(item_id: int, world: str, hq: bool, fallback_price: int) -> int:
     """
     requests universalis with specified world and item_id \n
@@ -219,6 +220,7 @@ def get_ingredients(recipe_data: dict, number_of_crafts: int) -> dict:
             ingredients[recipe_data[f"ItemIngredient{i}TargetID"]] = recipe_data[f"AmountIngredient{i}"] * number_of_crafts
     return ingredients
 
+# get optimal combination of listings to buy
 def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False) -> list[dict]:
     """
     Takes all Listings of an item and a target itemcount as input. Goes through all \n
@@ -239,7 +241,7 @@ def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False)
     lowest_total = float('inf')
     best_quantity_sum = 0
     
-    # Try all possible combinations of entries, starting from the first entry
+    # Try possible combinations of entries
     for i in range(len(entries)):
         current_combination = []
         current_total = 0
@@ -250,9 +252,8 @@ def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False)
             current_quantity_sum += entries[j]["quantity"]
             current_total += entries[j]["total"]
             
-            # Check if quantity is enough
+            # Check if quantity is enough and if combination has smaller total
             if current_quantity_sum >= needed_items:
-                # check if combination has smaller total
                 if current_total < lowest_total:
                     best_combination = current_combination.copy()
                     lowest_total = current_total
