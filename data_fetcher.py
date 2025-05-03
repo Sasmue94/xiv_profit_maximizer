@@ -122,6 +122,19 @@ def get_sale_history(world: str, item_id: int) -> dict:
     url = f"https://universalis.app/api/v2/history/{world}/{item_id}?minSalePrice=0&maxSalePrice=2147483647"
     return convert_response(requests.get(url))
 
+# requests universalis, returns data on average sales
+@st.cache_data
+def get_average_sale_info(world: str, item_id: int) -> list[dict]:
+    """
+    requests universalis with the specified item_id for average sale data \n
+    on the market board on the given world \n
+    :param item_id: a ff xiv item ID
+    :param world: a ff xiv world / servername
+    :return average sale data: returns a Dataframe containing data about the item
+    """
+    url = f"https://universalis.app/api/v2/aggregated/{world}/{item_id}"
+    return convert_response(requests.get(url))            
+
 # reformats sale history to make it more usable
 def harmonise_sale_history(sale_history: list[dict]) -> DataFrame:
     """

@@ -112,10 +112,24 @@ if search:
 
         # display sale history
         lowest_price = df.get_first_listing(item_id=target_item_id, world=world, hq=craft_hq, fallback_price=fallback_price)
-        st.subheader(f"{language_map['history'][lang]}: {selected_item}")
+        st.header(f"{language_map['history'][lang]}: {selected_item}")
         st.subheader(f"Current Price on {world}: {lowest_price} Gil")
         dr.draw_sale_history(sale_history_agg=hist_agg, sale_history=hist)
         item_data = df.get_item_info(item_id=target_item_id)
+        avg_sale_data = df.get_average_sale_info(world=world, item_id=target_item_id)["results"][0]
+        avg_sale_data = [pd.DataFrame(avg_sale_data["nq"]).transpose(), pd.DataFrame(avg_sale_data["hq"]).transpose()]
+        for i, e in enumerate(avg_sale_data):
+            if i == 0:
+                qual = "NQ"
+            else: 
+                qual = "HQ"
+            try:
+                st.subheader(f'{qual} -> Average Sale Price: {e["world"].at["averageSalePrice"]["price"]} Gil, Average Daily Sales: {e["world"].at["dailySaleVelocity"]["quantity"]:.2f} pcs')
+            except:
+                    st.subheader(f"{qual} -> no data")
+
+
+
 
         # item is craftable
         amount_result = 0
@@ -152,7 +166,7 @@ if search:
 
             # display estimated result when using shoppinglist
             shoppinglist = convert_shoppinglist(shoppinglist)
-            st.subheader("Shoppinglist:")
+            st.header("Shoppinglist:")
             st.dataframe(shoppinglist, hide_index=True)
             total_cost = sum(shoppinglist["Total"])
             max_turnover = crafts * amount_result * lowest_price
@@ -162,9 +176,9 @@ if search:
             # show cost spread of all crafts
             calculations = pd.DataFrame({"Turnover": max_turnover, "Total Cost": total_cost, "Win/Loss": profit}, index=["Gil"]).transpose()
             calculations.index.name = "Cost / Income"
-            st.subheader("Win / Loss Visualization")    
+            st.header("Win / Loss Visualization")    
             dr.draw_profit_bars(calculations=calculations)
-            st.subheader("Cost Spread:")
+            st.header("Cost Spread:")
             dr.draw_cost_spread_pie(shoppinglist=shoppinglist)
 
         # item is not craftable
@@ -177,7 +191,13 @@ if search:
             # show optimized shoppinglist
             shop_data(listings=listings, items_needed=crafts, item_name=selected_item, ingredient_data=item_data)
             shoppinglist = convert_shoppinglist(shoppinglist=shoppinglist)
+
+            st.header("Shoppinglist")
             st.dataframe(data=shoppinglist, hide_index=True)
+            total_cost = sum(shoppinglist["Total"])
+            max_turnover = crafts * lowest_price
+            profit = max_turnover - total_cost
+            st.subheader(f"Turnover: {max_turnover} Gil, Total Cost: {total_cost} Gil -> estimated Profit: {profit} Gil")
 
             # show cheapest listings across different worlds for possible buying / reselling
             dr.draw_resell_listings(listings=lowest_listings, 
