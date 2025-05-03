@@ -215,6 +215,7 @@ def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False)
     :return best_combination: List containing the cheapest combination of entry dicts. 
     """
 
+    # filter listings in case user wants to buy hq materials
     if buy_hq:
         entries = pd.DataFrame(entries)
         entries = entries[entries["hq"] == buy_hq].copy()

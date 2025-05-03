@@ -78,13 +78,13 @@ items = df.map_items(lang=lang)
 
 # form on top part of page
 gapL, l, r, gapR = st.columns([1,5,5,1], gap="large")
-with l:
+with l: #left
     dc = st.selectbox(label=language_map["dc"][lang], options=dcs.keys())
     item_filter = st.text_input(label=language_map["filter"][lang], value="")
     filtered_items = items[items[lang].str.lower().str.contains(item_filter.lower())]
     crafts = st.number_input(label=language_map["count"][lang], min_value=1, step=1)
 
-with r:
+with r: # right
     world = st.selectbox(label=language_map["world"][lang], options=dcs[dc])
     selected_item = st.selectbox(label=language_map["item_select"][lang], options=filtered_items[lang])
     fallback_price = st.number_input("Price if no listing is active", min_value=1, step=1)
@@ -144,11 +144,13 @@ if search:
                 for thread in threads:
                     thread.join()
 
+                # get optimized shoppinglist
                 for i_id in recipe_listings["items"]:
                     item_name = items[items["item_id"] == int(i_id)][lang].iat[0]
                     ingredient_data = df.get_item_info(int(i_id))
                     shop_data(listings=recipe_listings["items"][i_id]["listings"], ingredient_data=ingredient_data, items_needed=ingredients[int(i_id)], item_name=item_name, buy_hq=buy_hq)
 
+            # display estimated result when using shoppinglist
             shoppinglist = convert_shoppinglist(shoppinglist)
             st.subheader("Shoppinglist:")
             st.dataframe(shoppinglist, hide_index=True)
@@ -156,6 +158,8 @@ if search:
             max_turnover = crafts * amount_result * lowest_price
             profit = max_turnover - total_cost
             st.subheader(f"Turnover: {max_turnover} Gil, Total Cost: {total_cost} Gil -> estimated Profit: {profit} Gil")
+
+            # show cost spread of all crafts
             calculations = pd.DataFrame({"Turnover": max_turnover, "Total Cost": total_cost, "Win/Loss": profit}, index=["Gil"]).transpose()
             calculations.index.name = "Cost / Income"
             st.subheader("Win / Loss Visualization")    
@@ -169,10 +173,13 @@ if search:
             # get all listings of said item
             listings = df.get_listings(item_ids=[target_item_id], datacenter=dc)["listings"]
             lowest_listings = df.get_lowest_listings(listings=listings, item_count=crafts)
-            # show cheapest listings across different worlds for possible buying / reselling
+            
+            # show optimized shoppinglist
             shop_data(listings=listings, items_needed=crafts, item_name=selected_item, ingredient_data=item_data)
             shoppinglist = convert_shoppinglist(shoppinglist=shoppinglist)
             st.dataframe(data=shoppinglist, hide_index=True)
+
+            # show cheapest listings across different worlds for possible buying / reselling
             dr.draw_resell_listings(listings=lowest_listings, 
                                     world_label=language_map["world"][lang], 
                                     total_label=language_map["total"][lang], 
