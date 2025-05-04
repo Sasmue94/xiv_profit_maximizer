@@ -72,6 +72,102 @@ language_map: dict[str:dict[str:str]] = {
         "de" : "Anzahl",
         "fr" : "Nombre",
         "ja" : "数量"
+    },
+    "spread" : {
+        "en" : "Cost allocation",
+        "de" : "Kostenverteilung",
+        "fr" : "Répartition des coûts",
+        "ja" : "コスト配分"
+    },
+    "shoppinglist": {
+        "en" : "Shoppinglist",
+        "de" : "Einkaufsliste",
+        "fr" : "Liste d'adresses",
+        "ja" : "ショッピングリスト"
+    },
+    "turnover" : {
+        "en" : "turnover",
+        "de" : "Umsatz",
+        "fr" : "Chiffre d'affaires",
+        "ja" : "ターンオーバー"
+    },
+    "cost" : {
+        "en" : "total cost",
+        "de" : "Gesamtkosten",
+        "fr" : "Coût total",
+        "ja" : "総費用"
+    },
+    "estimate" : {
+        "en" : "estimated Profit",
+        "de" : "erwarteter Gewinn",
+        "fr" : "bénéfice escompté",
+        "ja" : "期待利益"
+    },
+    "wlv" : {
+        "en" : "Win / Loss Visualization",
+        "de" : "Gewinn / Verlust Darstellung",
+        "fr" : "Présentation des bénéfices / pertes",
+        "ja" : "損益表示"
+    },
+    "wl" : {
+        "en" : "Win/Loss",
+        "de" : "Gewinn/Verlust",
+        "fr" : "Bénéfice/perte",
+        "ja" : "利益／損失"
+    },
+    "average_sale_price" : {
+        "en" : "Average sales price",
+        "de" : "Ø Verkaufspreis",
+        "fr" : "Prix de vente moyen",
+        "ja" : "平均販売価格"
+    },
+    "average_daily" : {
+        "en" : "average daily Sales",
+        "de" : "Ø Verkäufe pro Tag",
+        "fr" : "ventes moyennes par jour",
+        "ja" : "1日平均売上高"        
+    },
+    "pcs" : {
+        "en" : "pcs",
+        "de" : "Stk",
+        "fr" : "pcs",
+        "ja" : "個"
+    },
+    "curpr_on" : {
+        "en" : "current Price on",
+        "de" : "aktueller Preis auf",
+        "fr" : "Prix actuel sur",
+        "ja" : "現在の価格"
+    },
+    "no_data" : {
+        "en" : "No Data",
+        "de" : "Keine Daten",
+        "fr" : "Prix actuel sur",
+        "ja" : "データなし"
+    },
+    "no_listing" : {
+        "en" : "Price if no Listing is active",
+        "de" : "Preis falls Artikel nicht gelistet",
+        "fr" : "Prix si aucune inscription n'est active",
+        "ja" : "リスティングが有効でない場合の価格"
+    }, 
+    "cost_income" : {
+        "en" : "Cost / Income",
+        "de" : "Kosten / Einkommen",
+        "fr" : "Coût/revenu",
+        "ja" : "コスト／収入"
+    },
+    "buy" : {
+        "en" : "buy",
+        "de" : "kaufe",
+        "fr" : "acheter",
+        "ja" : "買う"
+    },
+    "craft_hq" : {
+        "en" : "craft HQ",
+        "de" : "stelle HQ her",
+        "fr" : "artisanat de haute qualité",
+        "ja" : "クラフト・ハイクオリティ"
     }
 
 }

@@ -69,7 +69,7 @@ with left:
 with right:
     st.write("")
     # select language
-    lang = st.selectbox(label="Language", options=languages, key="language")
+    lang = st.selectbox(label="Lang", options=languages, key="language")
 
 items = df.map_items(lang=lang)
 
@@ -84,10 +84,10 @@ with l: #left
 with r: # right
     world = st.selectbox(label=language_map["world"][lang], options=dcs[dc])
     selected_item = st.selectbox(label=language_map["item_select"][lang], options=filtered_items[lang])
-    fallback_price = st.number_input("Price if no listing is active", min_value=1, step=1)
+    fallback_price = st.number_input(f"{language_map['no_listing'][lang]}", min_value=1, step=1)
     buy, craft = st.columns(2)
-    buy_hq = buy.checkbox(label = "Buy HQ")
-    craft_hq = craft.checkbox(label = "Craft HQ")
+    buy_hq = buy.checkbox(label = f"{language_map['buy'][lang]} HQ")
+    craft_hq = craft.checkbox(label = f"{language_map['craft_hq'][lang]}")
 
 for server in dcs[dc]:
     shoppinglist[server] = []
@@ -110,7 +110,7 @@ if search:
         # display sale history
         lowest_price = df.get_first_listing(item_id=target_item_id, world=world, hq=craft_hq, fallback_price=fallback_price)
         st.header(f"{language_map['history'][lang]}: {selected_item}")
-        st.subheader(f"Current Price on {world}: {lowest_price} Gil")
+        st.subheader(f"{language_map['curpr_on'][lang]} {world}: {lowest_price} Gil")
         dr.draw_sale_history(sale_history_agg=hist_agg, sale_history=hist)
 
         # display average sale data
@@ -120,9 +120,9 @@ if search:
         for i, e in enumerate(avg_sale_data):
             qual = "NQ" if i == 0 else "HQ" # maximum of i = 1 possible
             try: # if the format doesn't match, the data is insufficient
-                st.subheader(f'{qual} -> Average Sale Price: {e["world"].at["averageSalePrice"]["price"]} Gil, Average Daily Sales: {e["world"].at["dailySaleVelocity"]["quantity"]:.2f} pcs')
+                st.subheader(f'{qual} -> {language_map["average_sale_price"][lang]}: {e["world"].at["averageSalePrice"]["price"]} Gil, {language_map["average_daily"][lang]}: {e["world"].at["dailySaleVelocity"]["quantity"]:.2f} {language_map["pcs"][lang]}')
             except:
-                    st.subheader(f"{qual} -> no data")
+                    st.subheader(f"{qual} -> {language_map['no_data'][lang]}")
 
         # item is craftable
         amount_result = 0
@@ -161,19 +161,19 @@ if search:
 
             # display estimated result when using shoppinglist
             shoppinglist = convert_shoppinglist(shoppinglist)
-            st.header("Shoppinglist:")
+            st.header(language_map["shoppinglist"][lang])
             st.dataframe(shoppinglist, hide_index=True)
             total_cost = sum(shoppinglist["Total"])
             max_turnover = crafts * amount_result * lowest_price
             profit = max_turnover - total_cost
-            st.subheader(f"Turnover: {max_turnover} Gil, Total Cost: {total_cost} Gil -> estimated Profit: {profit} Gil")
+            st.subheader(f"{language_map['turnover'][lang]}: {max_turnover} Gil, {language_map['cost'][lang]}: {total_cost} Gil -> {language_map['estimate'][lang]}: {profit} Gil")
 
             # show cost spread of all crafts
-            calculations = pd.DataFrame({"Turnover": max_turnover, "Total Cost": total_cost, "Win/Loss": profit}, index=["Gil"]).transpose()
-            calculations.index.name = "Cost / Income"
-            st.header("Win / Loss Visualization")    
+            calculations = pd.DataFrame({f"{language_map['turnover'][lang]}": max_turnover, f"{language_map['cost'][lang]}": total_cost, f"{language_map['wl'][lang]}": profit}, index=["Gil"]).transpose()
+            calculations.index.name = f"{language_map['cost_income'][lang]}"
+            st.header(f"{language_map['wlv'][lang]}")    
             dr.draw_profit_bars(calculations=calculations)
-            st.header("Cost Spread:")
+            st.header(language_map["spread"][lang])
             dr.draw_cost_spread_pie(shoppinglist=shoppinglist)
 
         # item is not craftable
@@ -187,12 +187,12 @@ if search:
             shop_data(listings=listings, items_needed=crafts, item_name=selected_item, ingredient_data=item_data)
             shoppinglist = convert_shoppinglist(shoppinglist=shoppinglist)
 
-            st.header("Shoppinglist")
+            st.header(language_map["shoppinglist"][lang])
             st.dataframe(data=shoppinglist, hide_index=True)
             total_cost = sum(shoppinglist["Total"])
             max_turnover = crafts * lowest_price
             profit = max_turnover - total_cost
-            st.subheader(f"Turnover: {max_turnover} Gil, Total Cost: {total_cost} Gil -> estimated Profit: {profit} Gil")
+            st.subheader(f"{language_map['turnover'][lang]}: {max_turnover} Gil, {language_map['cost'][lang]}: {total_cost} Gil -> {language_map['estimate'][lang]}: {profit} Gil")
 
             # show cheapest listings across different worlds for possible buying / reselling
             dr.draw_resell_listings(listings=lowest_listings, 
