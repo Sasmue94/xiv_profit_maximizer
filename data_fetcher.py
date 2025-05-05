@@ -266,6 +266,7 @@ def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False)
 
     return best_combination
 
+# get actual crafting cost of the item and remaining materials
 def get_crafting_cost_info(shoppinglist: DataFrame, ingredients: dict) -> dict:
     """
     Compares Shoppinglist with needed ingredients, gets the average price of \n

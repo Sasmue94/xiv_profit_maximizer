@@ -191,7 +191,6 @@ if search:
             calculations = pd.DataFrame({f"{language_map['turnover'][lang]}": max_turnover, f"{language_map['cost'][lang]}": total_cost, f"{language_map['wl'][lang]}": profit}, index=["Gil"]).transpose()
             calculations.index.name = f"{language_map['cost_income'][lang]}"   
             dr.draw_profit_bars(calculations=calculations, title=language_map['wlv'][lang])
-            #st.header(language_map["spread"][lang])
             dr.draw_cost_spread_pie(shoppinglist=shoppinglist, title=language_map["spread"][lang])
 
         # item is not craftable

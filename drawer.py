@@ -116,12 +116,10 @@ def draw_lowest_listings(item: str, items: DataFrame, lang: str, language_map: d
     """
     gapL, m, gapR = st.columns([1,10,1], gap="large")
     with m:
-        #st.subheader(items[items["item_id"] == int(item)][lang].iat[0])
-        # show best possible purchases on each world
         draw_resell_listings(listings=lowest_listings, 
                         world_label=language_map["world"][lang], 
                         total_label=language_map["total"][lang], 
                         unit_label=language_map["unit"][lang],
-                        title_label=items[items["item_id"] == int(item)][lang].iat[0],#language_map["listing_bar"][lang],
+                        title_label=items[items["item_id"] == int(item)][lang].iat[0],
                         amount_label=language_map["amount"][lang],
                         key=f"{item}_chart")
