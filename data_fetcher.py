@@ -68,7 +68,7 @@ def get_item_id(items: pd.DataFrame, lang: str, selected_item: str) -> int:
 
 # check if item is craftable
 @st.cache_data
-def isCraftable(item_data: dict) -> bool:
+def is_Craftable(item_data: dict) -> bool:
     """
     checks item data for recipe, if it contains recipes, \n
     the item is craftable \n
@@ -184,11 +184,10 @@ def get_first_listing(item_id: int, world: str, hq: bool, fallback_price: int) -
     return price
 
 # check listings for specified amounts of needed items
-def get_lowest_listings(listings: list[dict[str:any]], item_count: int) -> DataFrame:
+def get_lowest_listings(listings: list[dict[str:any]]) -> DataFrame:
     """
     searches provided listings for the cheapest listing >= needed item count \n
     :param listings: a list of ff xiv market board listings per item
-    :param item_count: Number of needed items
     :return cheapest listings: returns a Dataframe containing the best suiting market board listings
     """
     lowest_listings: dict = {}
@@ -200,24 +199,25 @@ def get_lowest_listings(listings: list[dict[str:any]], item_count: int) -> DataF
             ppu: int = entry["pricePerUnit"]
             if world not in lowest_listings:
                 lowest_listings[world] = {"quantity": qty, "total": total, "price_per_unit": ppu}
-            elif qty >= item_count and total < lowest_listings[world]["total"]:
-                lowest_listings[world] = {"quantity": qty, "total": total, "price_per_unit": ppu}
     df = pd.DataFrame(lowest_listings).transpose()
     df.index.name = "world"
     df = df.reset_index(drop=False)                
     return df
 
 # get recipe ingredients
-def get_ingredients(recipe_data: dict, number_of_crafts: int) -> dict:
+def get_ingredients(recipe_data: dict, number_of_crafts: int, exclude_crystals: bool = False) -> dict:
     """
     Check recipe data for item ids and the amount needed \n
     :param recipe_data: a dict containing ff xiv recipe information
+    :param exclude_crystals: Bool if true shards and crystals will be excluded 
     :return ingredients: returns a python dictionary containing item IDs and Number of items needed
     """
+    crystal_ids = list(range(2, 20))
     ingredients = {}
     for i in range(0, 8):
         if recipe_data[f"AmountIngredient{i}"] > 0:
-            ingredients[recipe_data[f"ItemIngredient{i}TargetID"]] = recipe_data[f"AmountIngredient{i}"] * number_of_crafts
+            if not (exclude_crystals and recipe_data[f"ItemIngredient{i}TargetID"] in crystal_ids):
+                ingredients[recipe_data[f"ItemIngredient{i}TargetID"]] = recipe_data[f"AmountIngredient{i}"] * number_of_crafts
     return ingredients
 
 # get optimal combination of listings to buy
@@ -266,3 +266,27 @@ def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False)
 
     return best_combination
 
+def get_crafting_cost_info(shoppinglist: DataFrame, ingredients: dict) -> dict:
+    """
+    Compares Shoppinglist with needed ingredients, gets the average price of \n
+    bought items and returns the average crafting cost of your item and which \n
+    bought ingredients will remain after crafting \n
+    :param shoppinglist: Dataframe containing which items to buy on which world
+    :param ingredients: dictionary containing needed item_ids and needed amount
+    :return crafting_cost_info: dictionary containing a dictionary with info about remaining items + actual crafting cost 
+    """
+    crafting_cost_info = {"overhead" : {}, "crafting_cost" : 0}
+    for ingredient in ingredients:
+        current_set: DataFrame = shoppinglist[shoppinglist["item_id"] == str(ingredient)]
+        item_name = current_set["Item"].iat[0]
+        needed_items = ingredients[ingredient]
+        bought_items = sum(current_set["Quantity"])
+        total_cost = sum(current_set["Total"])
+        average_cost = round(total_cost / bought_items)
+        overhead = bought_items - needed_items
+        crafting_cost = needed_items * average_cost
+        if overhead > 0:
+            crafting_cost_info["overhead"][f"{item_name}"] = overhead
+        crafting_cost_info["crafting_cost"] += crafting_cost
+    return crafting_cost_info
+        

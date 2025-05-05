@@ -168,6 +168,18 @@ language_map: dict[str:dict[str:str]] = {
         "de" : "stelle HQ her",
         "fr" : "artisanat de haute qualité",
         "ja" : "クラフト・ハイクオリティ"
+    },
+    "exclude_crystals" : {
+        "en" : "exclude crystals",
+        "de" : "Kristalle ausschließen",
+        "fr" : "Exclure les cristaux",
+        "ja" : "クリスタルを除く"
+    },
+    "remaining" : {
+        "en" : "remaining",
+        "de" : "übrig",
+        "fr" : "restant",
+        "ja" : "左"
     }
 
 }
