@@ -230,41 +230,31 @@ def get_lowest_sum(entries: list[dict], needed_items: int, buy_hq: bool = False)
     :return best_combination: List containing the cheapest combination of entry dicts. 
     """
 
-    # filter listings in case user wants to buy hq materials
-    if buy_hq:
-        entries = pd.DataFrame(entries)
-        entries = entries[entries["hq"] == buy_hq].copy()
-        entries = entries.to_dict(orient="records")
-    
-    # To store the best combination of entries
-    best_combination = []
-    lowest_total = float('inf')
-    best_quantity_sum = 0
-    
-    # Try possible combinations of entries
-    for i in range(len(entries)):
-        current_combination = []
-        current_total = 0
-        current_quantity_sum = 0
-        
-        for j in range(i, len(entries)):
-            current_combination.append(entries[j])
-            current_quantity_sum += entries[j]["quantity"]
-            current_total += entries[j]["total"]
-            
-            # Check if quantity is enough and if combination has smaller total
-            if current_quantity_sum >= needed_items:
-                if current_total < lowest_total:
-                    best_combination = current_combination.copy()
-                    lowest_total = current_total
-                    best_quantity_sum = current_quantity_sum
-                break
-    
-    # if there are not enough listings, return entire list
-    if best_quantity_sum < needed_items:
+    entries = [e for e in entries if e['hq']] if buy_hq else entries
+
+    if not entries:
+        return []
+
+    if sum(e['quantity'] for e in entries) <= needed_items:
         return entries
 
-    return best_combination
+    dp = {0: (0, [])}
+
+    for entry in entries:
+        current_dp = dp.copy()
+        for quantity, (cost, combination) in current_dp.items():
+            new_quantity = quantity + entry['quantity']
+            new_cost = cost + entry['total']
+
+            if new_quantity not in dp or new_cost < dp[new_quantity][0]:
+                dp[new_quantity] = (new_cost, combination + [entry])
+
+    valid_combinations = [(cost, combo) for q, (cost, combo) in dp.items() if q >= needed_items]
+
+    if not valid_combinations:
+        return entries
+
+    return min(valid_combinations, key=lambda x: x[0])[1]
 
 # get actual crafting cost of the item and remaining materials
 def get_crafting_cost_info(shoppinglist: DataFrame, ingredients: dict) -> dict:
