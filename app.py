@@ -135,7 +135,6 @@ if search:
 
             target_listings = df.get_listings(item_ids=[target_item_id], datacenter=dc)["listings"]
             lowest_listings_target = df.get_lowest_listings(listings=target_listings)
-            #st.subheader(selected_item)
             dr.draw_resell_listings(listings=lowest_listings_target, 
                                 world_label=language_map["world"][lang], 
                                 total_label=language_map["total"][lang], 
@@ -156,7 +155,7 @@ if search:
                 recipe_listings = df.get_listings(list(ingredients.keys()), datacenter=dc)
 
                 # get prices for every ingredient in the recipe
-                threads = []
+                threads:list[threading.Thread] = []
                 for i in recipe_listings["items"]: # there is a maximum of 7 ingredients per craft
                     # show best possible purchases on each world
                     lowest_listings = df.get_lowest_listings(listings=recipe_listings["items"][i]["listings"])
@@ -190,7 +189,7 @@ if search:
             # show cost spread of all crafts
             calculations = pd.DataFrame({f"{language_map['turnover'][lang]}": max_turnover, f"{language_map['cost'][lang]}": total_cost, f"{language_map['wl'][lang]}": profit}, index=["Gil"]).transpose()
             calculations.index.name = f"{language_map['cost_income'][lang]}"   
-            dr.draw_profit_bars(calculations=calculations, title=language_map['wlv'][lang])
+            dr.draw_profit_bars(calculations=calculations, title=language_map["wlv"][lang])
             dr.draw_cost_spread_pie(shoppinglist=shoppinglist, title=language_map["spread"][lang])
 
         # item is not craftable
